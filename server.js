@@ -14,6 +14,10 @@ blog.initialize()
     .then(app.listen(HTTP_PORT, onHttpStart))
     .catch((err) => { console.log("message: " + err) });
 
+app.get("/", (req, res) => {
+    res.sendFile(path.join(__dirname, "/views/about.html"));
+});
+
 app.get("/about", (req, res) => {
     res.sendFile(path.join(__dirname, "/views/about.html"));
 });
