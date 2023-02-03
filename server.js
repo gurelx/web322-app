@@ -1,3 +1,17 @@
+/*********************************************************************************
+* WEB322 – Assignment 02
+* I declare that this assignment is my own work in accordance with Seneca Academic Policy. No part
+* of this assignment has been copied manually or electronically from any other source
+* (including 3rd party web sites) or distributed to other students.
+*
+* Name: _Gurel Sezgin__ Student ID: 174331215 Date: 02/03/2023
+*
+* Cyclic Web App URL: https://cyan-friendly-lovebird.cyclic.app_
+*
+* GitHub Repository URL: https://github.com/gurelx/web322-app
+*
+********************************************************************************/
+
 var blog = require("./blog-service.js");
 var express = require("express");
 var path = require("path");
