@@ -18,43 +18,51 @@ var path = require("path");
 
 var app = express();
 
+// Port will be opened at 8080
 var HTTP_PORT = process.env.PORT || 8080;
 
+// Server message
 function onHttpStart() {
     console.log("Express http server listening on: " + HTTP_PORT);
 }
 
+// Initialize globals
 blog.initialize()
     .then(app.listen(HTTP_PORT, onHttpStart))
     .catch((err) => { console.log("message: " + err) });
 
+// Initial page redirected to /about
 app.get("/", (req, res) => {
-    res.sendFile(path.join(__dirname, "/views/about.html"));
+    res.redirect("/about");
 });
 
+// About page
 app.get("/about", (req, res) => {
     res.sendFile(path.join(__dirname, "/views/about.html"));
 });
 
-
+// Blog page
 app.get("/blog", (req, res) => {
     blog.getPublishedPosts()
         .then((data) => res.send(data))
         .catch((err) => { console.log("message: " + err) });
 });
 
+// Posts page
 app.get("/posts", (req, res) => {
     blog.getAllPosts()
         .then((data) => res.send(data))
         .catch((err) => { console.log("message: " + err) });
 });
 
+// Categories page
 app.get("/categories", (req, res) => {
     blog.getCategories()
         .then((data) => res.send(data))
         .catch((err) => { console.log("message: " + err) });
 });
 
+// If requested page not found
 app.use((req, res) => {
     res.status(404).send("Oops! These are not the pages you are looking for!");
 });
