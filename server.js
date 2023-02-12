@@ -65,6 +65,11 @@ app.get("/categories", (req, res) => {
         .catch((err) => { console.log("message: " + err) });
 });
 
+// Add posts
+app.get("/posts/add", (req, res) => {
+    res.sendFile(path.join(__dirname, "/views/addPost.html"));
+});
+
 // If requested page not found
 app.use((req, res) => {
     res.status(404).send("Oops! These are not the pages you are looking for!");
