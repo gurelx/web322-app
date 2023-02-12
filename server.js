@@ -19,12 +19,15 @@ var path = require("path");
 var app = express();
 
 // Port will be opened at 8080
-var HTTP_PORT = process.env.PORT || 8080;
+var HTTP_PORT = process.env.PORT || 8081;
 
 // Server message
 function onHttpStart() {
     console.log("Express http server listening on: " + HTTP_PORT);
 }
+
+// For static files
+app.use(express.static("static"));
 
 // Initialize globals
 blog.initialize()
