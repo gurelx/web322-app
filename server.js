@@ -158,9 +158,10 @@ app.post("/posts/add", upload.single("featureImage"), (req,res) => {
             featureImage : imageUrl,
             published : req.body.published
         }
-        blog.addPost(newPost);
+        blog.addPost(newPost)
+            .then(() =>  res.redirect("/posts"))
+            .catch((err) => { console.log("message: " + err) });
     }
-    res.redirect("/posts");
 });
 
 // If requested page not found
