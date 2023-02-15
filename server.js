@@ -94,11 +94,14 @@ app.get("/posts", (req, res) => {
 });
 
 // Value route
-app.get("/posts/:value", (req, res) => {
+app.get("/posts/:value", (req, res, next) => {
     var id = req.params.value;
-    blog.getPostById(id)
+    if(!isNaN(id))
+    {
+        blog.getPostById(id)
         .then((data) => res.send(data))
         .catch((err) => { console.log("message: " + err) });
+    } else next();
 });
 
 // Categories page
