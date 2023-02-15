@@ -72,12 +72,12 @@ module.exports.addPost = (postData) => {
 }
 
 // Get the posts by post id
-module.exports.getPostById = (id) => {
+module.exports.getPostByCategory = (category) => {
     return new Promise ((resolve,reject) => {
         let postQueries = [];
         for(let i = 0; i < posts.length; i++)
         {
-            if(posts[i].category == id)
+            if(posts[i].category == category)
                 postQueries.push(posts[i]);
         }
 
@@ -102,5 +102,22 @@ module.exports.getPostsByMinDate = (minDateStr) => {
                 reject('No posts found older than specified date.');
             else
                 resolve(postQueries);
+        });
+}
+
+// Get posts by id
+module.exports.getPostById = (id) => {
+    return new Promise ((resolve,reject) => {
+        let postQueries = [];
+        for(let i = 0; i < posts.length; i++)
+        {
+            if(posts[i].id == id)
+                postQueries.push(posts[i]);
+        }
+
+        if(postQueries.length == 0)
+            reject('No posts found with the specified id.');
+        else
+            resolve(postQueries);
         });
 }

@@ -73,7 +73,7 @@ app.get("/posts", (req, res) => {
     // /posts?category=value
     if(category)
     {
-        blog.getPostById(category)
+        blog.getPostByCategory(category)
         .then((data) => res.send(data))
         .catch((err) => { console.log("message: " + err) });
     }
@@ -91,6 +91,14 @@ app.get("/posts", (req, res) => {
          .then((data) => res.send(data))
          .catch((err) => { console.log("message: " + err) });
     }
+});
+
+// Value route
+app.get("/posts/:value", (req, res) => {
+    var id = req.params.value;
+    blog.getPostById(id)
+        .then((data) => res.send(data))
+        .catch((err) => { console.log("message: " + err) });
 });
 
 // Categories page
