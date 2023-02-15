@@ -24,7 +24,7 @@ const streamifier = require('streamifier');
 var app = express();
 
 // Port will be opened at 8080
-var HTTP_PORT = process.env.PORT || 8081;
+var HTTP_PORT = process.env.PORT || 8080;
 
 // Server message
 function onHttpStart() {
@@ -68,9 +68,29 @@ app.get("/blog", (req, res) => {
 
 // Posts page
 app.get("/posts", (req, res) => {
-    blog.getAllPosts()
+    var category = req.query.category;
+    var minDate = req.query.minDate;
+    // /posts?category=value
+    if(category)
+    {
+        blog.getPostById(category)
         .then((data) => res.send(data))
         .catch((err) => { console.log("message: " + err) });
+    }
+    // /posts?minDate=value
+    else if(minDate)
+    {
+        blog.getPostsByMinDate(minDate)
+         .then((data) => res.send(data))
+         .catch((err) => { console.log("message: " + err) });
+    }
+    // All posts
+    else
+    {
+        blog.getAllPosts()
+         .then((data) => res.send(data))
+         .catch((err) => { console.log("message: " + err) });
+    }
 });
 
 // Categories page
@@ -84,7 +104,6 @@ app.get("/categories", (req, res) => {
 app.get("/posts/add", (req, res) => {
     res.sendFile(path.join(__dirname, "/views/addPost.html"));
 });
-
 
 
 // Post a new post

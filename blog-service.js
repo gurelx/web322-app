@@ -54,8 +54,10 @@ module.exports.getPublishedPosts = function () {
 // Get categories
 module.exports.getCategories = function () {
     return new Promise((resolve, reject) => {
-        if (categories.length == 0) reject("no results returned")
-        else resolve(categories);
+        if (categories.length == 0)
+            reject("no results returned");
+        else 
+            resolve(categories);
     });
 }
 
@@ -67,4 +69,38 @@ module.exports.addPost = (postData) => {
         posts.push(postData);
         resolve(postData);
     });
+}
+
+// Get the posts by post id
+module.exports.getPostById = (id) => {
+    return new Promise ((resolve,reject) => {
+        let postQueries = [];
+        for(let i = 0; i < posts.length; i++)
+        {
+            if(posts[i].category == id)
+                postQueries.push(posts[i]);
+        }
+
+        if(postQueries.length == 0)
+            reject('No posts found with the specified id.');
+        else
+            resolve(postQueries);
+        });
+}
+
+// Get posts by date by gap
+module.exports.getPostsByMinDate = (minDateStr) => {
+    return new Promise ((resolve,reject) => {
+        let postQueries = [];
+        for(let i = 0; i < posts.length; i++)
+        {
+            if(new Date(posts[i].postDate) >= new Date(minDateStr))
+                postQueries.push(posts[i]);
+        }
+
+        if(postQueries.length == 0)
+                reject('No posts found older than specified date.');
+            else
+                resolve(postQueries);
+        });
 }
