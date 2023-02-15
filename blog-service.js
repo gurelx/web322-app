@@ -58,3 +58,13 @@ module.exports.getCategories = function () {
         else resolve(categories);
     });
 }
+
+// Add a new post
+module.exports.addPost = (postData) => {
+    return new Promise ((resolve,reject) => {
+        postData.published == undefined ? postData.published = false : postData.published = true;
+        postData.id = posts.length + 1;
+        posts.push(postData);
+        resolve(postData);
+    });
+}
