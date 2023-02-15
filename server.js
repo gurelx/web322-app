@@ -42,7 +42,7 @@ cloudinary.config({
 const upload = multer();
 
 // For static files
-app.use(express.static("static"));
+app.use('*/public', express.static(path.join(__dirname, "public")));
 
 // Initialize globals
 blog.initialize()
@@ -147,8 +147,8 @@ app.post("/posts/add", upload.single("featureImage"), (req,res) => {
     }
     function processPost(imageUrl) {
         req.body.featureImage = imageUrl;
+        
         // TODO: Process the req.body and add it as a new Blog Post before redirecting to /posts
-
         let newPost = {
             id :  0,
             body : req.body.body,
@@ -166,5 +166,5 @@ app.post("/posts/add", upload.single("featureImage"), (req,res) => {
 
 // If requested page not found
 app.use((req, res) => {
-    res.status(404).send("Oops! These are not the pages you are looking for!");
+    res.status(404).sendFile(path.join(__dirname, "/views/404_NotFound.html"));
 });

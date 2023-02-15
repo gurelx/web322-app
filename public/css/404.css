@@ -1,0 +1,32 @@
+@import url('https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@500&display=swap');
+
+body
+{
+    background-color: black;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+
+h1, p
+{
+    font-family: 'Archivo Narrow', sans-serif;
+    color: white;
+    text-align: center;
+}
+
+h1
+{
+   font-size: 3vw; 
+}
+
+p
+{
+   font-size: 2vw; 
+}
+
+img 
+{
+    width: 100%;
+}
