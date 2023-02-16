@@ -37,7 +37,7 @@ cloudinary.config({
     api_key: '631625477225192',
     api_secret: 'nr79pXNOD0nk8yil_i7XYGBHf48',
     secure: true
-   });
+});
 
 const upload = multer();
 
@@ -47,7 +47,7 @@ app.use('*/public', express.static(path.join(__dirname, "public")));
 // Initialize globals
 blog.initialize()
     .then(app.listen(HTTP_PORT, onHttpStart))
-    .catch((err) => { console.log("message: " + err) });
+    .catch((err) => { res.send("message: " + err) });
 
 // Initial page redirected to /about
 app.get("/", (req, res) => {
@@ -63,7 +63,7 @@ app.get("/about", (req, res) => {
 app.get("/blog", (req, res) => {
     blog.getPublishedPosts()
         .then((data) => res.send(data))
-        .catch((err) => { console.log("message: " + err) });
+        .catch((err) => { res.send("message: " + err) });
 });
 
 // Posts page
@@ -71,44 +71,30 @@ app.get("/posts", (req, res) => {
     var category = req.query.category;
     var minDate = req.query.minDate;
     // /posts?category=value
-    if(category)
-    {
+    if (category) {
         blog.getPostByCategory(category)
-        .then((data) => res.send(data))
-        .catch((err) => { console.log("message: " + err) });
+            .then((data) => res.send(data))
+            .catch((err) => { res.send("message: " + err) });
     }
     // /posts?minDate=value
-    else if(minDate)
-    {
+    else if (minDate) {
         blog.getPostsByMinDate(minDate)
-         .then((data) => res.send(data))
-         .catch((err) => { console.log("message: " + err) });
+            .then((data) => res.send(data))
+            .catch((err) => { res.send("message: " + err) });
     }
     // All posts
-    else
-    {
+    else {
         blog.getAllPosts()
-         .then((data) => res.send(data))
-         .catch((err) => { console.log("message: " + err) });
+            .then((data) => res.send(data))
+            .catch((err) => { res.send("message: " + err) });
     }
-});
-
-// Value route
-app.get("/posts/:value", (req, res, next) => {
-    var id = req.params.value;
-    if(!isNaN(id))
-    {
-        blog.getPostById(id)
-        .then((data) => res.send(data))
-        .catch((err) => { console.log("message: " + err) });
-    } else next();
 });
 
 // Categories page
 app.get("/categories", (req, res) => {
     blog.getCategories()
         .then((data) => res.send(data))
-        .catch((err) => { console.log("message: " + err) });
+        .catch((err) => { res.send("message: " + err) });
 });
 
 // Add posts
@@ -118,8 +104,8 @@ app.get("/posts/add", (req, res) => {
 
 
 // Post a new post
-app.post("/posts/add", upload.single("featureImage"), (req,res) => {
-    if(req.file){
+app.post("/posts/add", upload.single("featureImage"), (req, res) => {
+    if (req.file) {
         let streamUpload = (req) => {
             return new Promise((resolve, reject) => {
                 let stream = cloudinary.uploader.upload_stream(
@@ -147,21 +133,30 @@ app.post("/posts/add", upload.single("featureImage"), (req,res) => {
     }
     function processPost(imageUrl) {
         req.body.featureImage = imageUrl;
-        
+
         // TODO: Process the req.body and add it as a new Blog Post before redirecting to /posts
         let newPost = {
-            id :  0,
-            body : req.body.body,
-            title : req.body.title,
-            postDate : new Date().toISOString().split('T')[0],
-            category : req.body.category,
-            featureImage : imageUrl,
-            published : req.body.published
+            id: 0,
+            body: req.body.body,
+            title: req.body.title,
+            postDate: new Date().toISOString().split('T')[0],
+            category: req.body.category,
+            featureImage: imageUrl,
+            published: req.body.published
         }
         blog.addPost(newPost)
-            .then(() =>  res.redirect("/posts"))
-            .catch((err) => { console.log("message: " + err) });
+            .then(() => res.redirect("/posts"))
+            .catch((err) => { res.send("message: " + err) });
     }
+});
+
+// Value route
+app.get("/posts/:value", (req, res) => {
+    var id = req.params.value;
+
+    blog.getPostById(id)
+        .then((data) => res.send(data))
+        .catch((err) => { res.send("message: " + err); });
 });
 
 // If requested page not found

@@ -74,13 +74,17 @@ module.exports.addPost = (postData) => {
 // Get the posts by post id
 module.exports.getPostByCategory = (category) => {
     return new Promise ((resolve,reject) => {
-        let postQueries = [];
+        let postQueries = []; // local array to store matching posts
+
+    if(!isNaN(category)) // validate category is a number
+    {
+        // If post category matches push post to local array
         for(let i = 0; i < posts.length; i++)
         {
             if(posts[i].category == category)
                 postQueries.push(posts[i]);
         }
-
+    }
         if(postQueries.length == 0)
             reject('No posts found with the specified id.');
         else
@@ -91,11 +95,18 @@ module.exports.getPostByCategory = (category) => {
 // Get posts by date by gap
 module.exports.getPostsByMinDate = (minDateStr) => {
     return new Promise ((resolve,reject) => {
-        let postQueries = [];
-        for(let i = 0; i < posts.length; i++)
+        let postQueries = []; // local array to store matching posts
+
+        let date = new Date(minDateStr); // Create a new date instance 
+
+        if(date instanceof Date && !isNaN(date)) // validate date
         {
-            if(new Date(posts[i].postDate) >= new Date(minDateStr))
+            // If post id matches push post to local array
+            for(let i = 0; i < posts.length; i++)
+            {
+            if(new Date(posts[i].postDate) >= date)
                 postQueries.push(posts[i]);
+            }
         }
 
         if(postQueries.length == 0)
@@ -108,16 +119,21 @@ module.exports.getPostsByMinDate = (minDateStr) => {
 // Get posts by id
 module.exports.getPostById = (id) => {
     return new Promise ((resolve,reject) => {
-        let postQueries = [];
-        for(let i = 0; i < posts.length; i++)
-        {
-            if(posts[i].id == id)
-                postQueries.push(posts[i]);
-        }
+        let postQueries = []; // local array to store matching posts
 
+        if(!isNaN(id)) // validate id is a number
+        {
+            // If post id matches push post to local array
+            for(let i = 0; i < posts.length; i++)
+            {
+                if(posts[i].id == id)
+                    postQueries.push(posts[i]);
+            }
+        }
+        
         if(postQueries.length == 0)
             reject('No posts found with the specified id.');
-        else
+        else 
             resolve(postQueries);
         });
 }
