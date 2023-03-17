@@ -1,5 +1,5 @@
 /*********************************************************************************
-* WEB322 – Assignment 02
+* WEB322 – Assignment 03
 * I declare that this assignment is my own work in accordance with Seneca Academic Policy. No part
 * of this assignment has been copied manually or electronically from any other source
 * (including 3rd party web sites) or distributed to other students.
@@ -15,6 +15,7 @@
 var blog = require("./blog-service.js");
 var express = require("express");
 var path = require("path");
+var exphbs = require('express-handlebars');
 
 // File hosting
 const multer = require("multer");
@@ -22,6 +23,30 @@ const cloudinary = require('cloudinary').v2;
 const streamifier = require('streamifier');
 
 var app = express();
+
+// Handling HTML files that are formatted using handlebars
+app.engine('.hbs', exphbs.engine({ 
+    extname: '.hbs',
+    helpers: {
+        // Helper for identifying 'active' navbar
+        navLink: function(url, options){
+            return '<li' +
+            ((url == app.locals.activeRoute) ? ' class="active" ' : '') +
+            '><a href="' + url + '">' + options.fn(this) + '</a></li>';
+           },
+        equal: function (lvalue, rvalue, options) {
+            if (arguments.length < 3)
+                throw new Error("Handlebars Helper equal needs 2 parameters");
+            if (lvalue != rvalue) {
+                return options.inverse(this);
+            } else {
+                return options.fn(this);
+            }
+        }
+    }
+}));
+
+app.set('view engine', '.hbs');
 
 // Port will be opened at 8080
 var HTTP_PORT = process.env.PORT || 8080;
@@ -41,6 +66,14 @@ cloudinary.config({
 
 const upload = multer();
 
+// Middleware to handle the 'active' items in navbar
+app.use(function(req,res,next){
+    let route = req.path.substring(1);
+    app.locals.activeRoute = "/" + (isNaN(route.split('/')[1]) ? route.replace(/\/(?!.*)/, "") : route.replace(/\/(.*)/, ""));
+    app.locals.viewingCategory = req.query.category;
+    next();
+   });
+
 // For static files
 app.use('*/public', express.static(path.join(__dirname, "public")));
 
@@ -56,7 +89,7 @@ app.get("/", (req, res) => {
 
 // About page
 app.get("/about", (req, res) => {
-    res.sendFile(path.join(__dirname, "/views/about.html"));
+    res.render('about');
 });
 
 // Blog page
@@ -99,7 +132,7 @@ app.get("/categories", (req, res) => {
 
 // Add posts
 app.get("/posts/add", (req, res) => {
-    res.sendFile(path.join(__dirname, "/views/addPost.html"));
+    res.render('addPost');
 });
 
 
