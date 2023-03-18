@@ -82,6 +82,12 @@ module.exports.addPost = (postData) => {
     return new Promise ((resolve,reject) => {
         postData.published == undefined ? postData.published = false : postData.published = true;
         postData.id = posts.length + 1;
+        // Add a timestamp
+        const currentDate = new Date();
+        const year = currentDate.getFullYear();
+        const month = (currentDate.getMonth() + 1).toString().padStart(2, '0');
+        const day = currentDate.getDate().toString().padStart(2, '0');
+        postData.postDate = `${year}-${month}-${day}`;
         posts.push(postData);
         resolve(postData);
     });

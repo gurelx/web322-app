@@ -31,7 +31,7 @@ app.engine('.hbs', exphbs.engine({
     helpers: {
         // Helper for identifying 'active' navbar
         navLink: function(url, options){
-            return '<li' +
+            return '<li style="list-style: none;"' +
             ((url == app.locals.activeRoute) ? ' class="active" ' : '') +
             '><a href="' + url + '">' + options.fn(this) + '</a></li>';
            },
@@ -88,7 +88,7 @@ blog.initialize()
 
 // Initial page redirected to /about
 app.get("/", (req, res) => {
-    res.redirect("/about");
+    res.redirect("/blog");
 });
 
 // About page
