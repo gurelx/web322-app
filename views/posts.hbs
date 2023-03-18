@@ -1,7 +1,33 @@
 <div class="row">
     <div class="col-md-12">
         <h2>Posts</h2>
-        <hr />
-        <p>TODO: render a list of all post title values here</p>
+        <hr>
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <th>Post&nbsp;ID</th>
+                    <th>Title</th>
+                    <th>Post&nbsp;Date</th>
+                    <th>Category</th>
+                    <th>Published</th>
+                </thead>
+                <tbody>
+                    {{#each posts}}
+                        <tr>
+                            <td>{{id}}</td>
+                            <td>{{title}}</td>
+                            <td>{{postDate}}</td>
+                            <td>{{category}}</td>
+                            <td>{{published}}</td>
+                        </tr>
+                    {{/each}}
+                </tbody>
+            </table>
+        </div>
     </div>
+    {{#unless posts}}
+        <div class="col-md-12 text-center">
+            <strong>{{message}}</strong>
+        </div>
+    {{/unless}}
 </div>

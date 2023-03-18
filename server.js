@@ -106,27 +106,27 @@ app.get("/posts", (req, res) => {
     // /posts?category=value
     if (category) {
         blog.getPostByCategory(category)
-            .then((data) => res.send(data))
+            .then((data) => {res.render("posts", { posts: data })})
             .catch((err) => { res.send("message: " + err) });
     }
     // /posts?minDate=value
     else if (minDate) {
         blog.getPostsByMinDate(minDate)
-            .then((data) => res.send(data))
+            .then((data) => {res.render("posts", { posts: data })})
             .catch((err) => { res.send("message: " + err) });
     }
     // All posts
     else {
         blog.getAllPosts()
-            .then((data) => res.send(data))
-            .catch((err) => { res.send("message: " + err) });
+            .then((data) => {res.render("posts", { posts: data })})
+            .catch((err) => {res.render("posts", { message: "no results" })});
     }
 });
 
 // Categories page
 app.get("/categories", (req, res) => {
     blog.getCategories()
-        .then((data) => res.send(data))
+        .then((data) => {res.render("posts", { posts: data })})
         .catch((err) => { res.send("message: " + err) });
 });
 
