@@ -126,8 +126,8 @@ app.get("/posts", (req, res) => {
 // Categories page
 app.get("/categories", (req, res) => {
     blog.getCategories()
-        .then((data) => {res.render("posts", { posts: data })})
-        .catch((err) => { res.send("message: " + err) });
+        .then((data) => { res.render("categories", {categories: data});})
+        .catch((err) => { res.render("categories", {message: "no results"}); });
 });
 
 // Add posts
