@@ -51,6 +51,22 @@ module.exports.getPublishedPosts = function () {
     });
 }
 
+// Get published posts of s specific category
+module.exports.getPublishedPostsByCategory = (category) => {
+    return new Promise((resolve, reject) => {
+        if (categories.length == 0) reject("no results returned")
+        else {
+            let published = []; // temp to assign only published objects
+            for (let i = 0; i < posts.length; i++) {
+                if (posts[i].published == true && post.category == category) {
+                    published[i] = posts[i];
+                }
+            }
+            resolve(published);
+        }
+    });
+}
+
 // Get categories
 module.exports.getCategories = function () {
     return new Promise((resolve, reject) => {
@@ -137,3 +153,4 @@ module.exports.getPostById = (id) => {
             resolve(postQueries);
         });
 }
+

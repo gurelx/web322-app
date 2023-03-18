@@ -16,6 +16,7 @@ var blog = require("./blog-service.js");
 var express = require("express");
 var path = require("path");
 var exphbs = require('express-handlebars');
+var stripJs = require('strip-js');
 
 // File hosting
 const multer = require("multer");
@@ -42,7 +43,10 @@ app.engine('.hbs', exphbs.engine({
             } else {
                 return options.fn(this);
             }
-        }
+        },
+        safeHTML: function(context) {
+            return stripJs(context);
+           }
     }
 }));
 
@@ -93,10 +97,51 @@ app.get("/about", (req, res) => {
 });
 
 // Blog page
-app.get("/blog", (req, res) => {
-    blog.getPublishedPosts()
-        .then((data) => res.send(data))
-        .catch((err) => { res.send("message: " + err) });
+app.get('/blog', async (req, res) => {
+
+    // Declare an object to store properties for the view
+    let viewData = {};
+
+    try {
+        // declare empty array to hold "post" objects
+        let posts = [];
+
+        // if there's a "category" query, filter the returned posts by category
+        if (req.query.category) {
+            // Obtain the published "posts" by category
+            posts = await blog.getPublishedPostsByCategory(req.query.category);
+        } else {
+            // Obtain the published "posts"
+            posts = await blog.getPublishedPosts();
+        }
+
+        // sort the published posts by postDate
+        posts.sort((a, b) => new Date(b.postDate) - new Date(a.postDate));
+
+        // get the latest post from the front of the list (element 0)
+        let post = posts[0];
+
+        // store the "posts" and "post" data in the viewData object (to be passed to the view)
+        viewData.posts = posts;
+        viewData.post = post;
+
+    } catch (err) {
+        viewData.message = "No results...";
+    }
+
+    try {
+        // Obtain the full list of "categories"
+        let categories = await blog.getCategories();
+
+        // store the "categories" data in the viewData object (to be passed to the view)
+        viewData.categories = categories;
+    } catch (err) {
+        viewData.categoriesMessage = "no results"
+    }
+
+    // render the "blog" view with all of the data (viewData)
+    res.render("blog", { data: viewData })
+
 });
 
 // Posts page
@@ -107,13 +152,13 @@ app.get("/posts", (req, res) => {
     if (category) {
         blog.getPostByCategory(category)
             .then((data) => {res.render("posts", { posts: data })})
-            .catch((err) => { res.send("message: " + err) });
+            .catch((err) => {res.render("posts", { message: "no results" })});
     }
     // /posts?minDate=value
     else if (minDate) {
         blog.getPostsByMinDate(minDate)
             .then((data) => {res.render("posts", { posts: data })})
-            .catch((err) => { res.send("message: " + err) });
+            .catch((err) => {res.render("posts", { message: "no results" })});
     }
     // All posts
     else {
