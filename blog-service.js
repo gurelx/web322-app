@@ -58,7 +58,7 @@ module.exports.getPublishedPostsByCategory = (category) => {
         else {
             let published = []; // temp to assign only published objects
             for (let i = 0; i < posts.length; i++) {
-                if (posts[i].published == true && post.category == category) {
+                if (posts[i].published == true && posts[i].category == category) {
                     published[i] = posts[i];
                 }
             }
@@ -132,22 +132,22 @@ module.exports.getPostsByMinDate = (minDateStr) => {
         });
 }
 
-// Get posts by id
+// Get post by id
 module.exports.getPostById = (id) => {
     return new Promise ((resolve,reject) => {
-        let postQueries = []; // local array to store matching posts
+        let postQueries; // local variable to store matching post
 
         if(!isNaN(id)) // validate id is a number
         {
-            // If post id matches push post to local array
+            // If post id matches set the local variable
             for(let i = 0; i < posts.length; i++)
             {
                 if(posts[i].id == id)
-                    postQueries.push(posts[i]);
+                    postQueries = posts[i];
             }
         }
         
-        if(postQueries.length == 0)
+        if(!postQueries)
             reject('No posts found with the specified id.');
         else 
             resolve(postQueries);
