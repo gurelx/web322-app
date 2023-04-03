@@ -13,13 +13,16 @@
                 </thead>
                 <tbody>
                     {{#each posts}}
-                        <tr>
-                            <td>{{id}}</td>
-                            <td>{{title}}</td>
-                            <td>{{postDate}}</td>
-                            <td>{{category}}</td>
-                            <td>{{published}}</td>
-                        </tr>
+                    <tr>
+                        <td>{{id}}</td>
+                        <td>{{title}}</td>
+                        <td>{{postDate}}</td>
+                        <td>{{category}}</td>
+                        <td>{{published}}</td>
+                         <td style="width:10px">
+                                <a href="posts/delete/{{id}}" class="btn btn-danger">Remove</a>
+                        </td>
+                    </tr>
                     {{/each}}
                 </tbody>
             </table>
@@ -31,3 +34,4 @@
         </div>
     {{/unless}}
 </div>
+<a href="/posts/add" class="btn btn-success pull-right">Add Post</a>

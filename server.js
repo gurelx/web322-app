@@ -1,5 +1,5 @@
 /*********************************************************************************
-* WEB322 – Assignment 04
+* WEB322 – Assignment 05
 * I declare that this assignment is my own work in accordance with Seneca Academic Policy. No part
 * of this assignment has been copied manually or electronically from any other source
 * (including 3rd party web sites) or distributed to other students.
@@ -24,17 +24,18 @@ const cloudinary = require('cloudinary').v2;
 const streamifier = require('streamifier');
 
 var app = express();
+app.set('view engine', '.hbs');
 
 // Handling HTML files that are formatted using handlebars
 app.engine('.hbs', exphbs.engine({ 
     extname: '.hbs',
     helpers: {
         // Helper for identifying 'active' navbar
-        navLink: function(url, options){
+        navLink: function (url, options) {
             return '<li style="list-style: none;"' +
-            ((url == app.locals.activeRoute) ? ' class="active" ' : '') +
-            '><a href="' + url + '">' + options.fn(this) + '</a></li>';
-           },
+                ((url == app.locals.activeRoute) ? ' class="active" ' : '') +
+                '><a href="' + url + '">' + options.fn(this) + '</a></li>';
+        },
         equal: function (lvalue, rvalue, options) {
             if (arguments.length < 3)
                 throw new Error("Handlebars Helper equal needs 2 parameters");
@@ -44,13 +45,18 @@ app.engine('.hbs', exphbs.engine({
                 return options.fn(this);
             }
         },
-        safeHTML: function(context) {
+        safeHTML: function (context) {
             return stripJs(context);
-           }
+        },
+        formatDate: function (dateObj) {
+            let year = dateObj.getFullYear();
+            let month = (dateObj.getMonth() + 1).toString();
+            let day = dateObj.getDate().toString();
+            return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+        }
     }
 }));
 
-app.set('view engine', '.hbs');
 
 // Port will be opened at 8080
 var HTTP_PORT = process.env.PORT || 8080;
@@ -70,6 +76,11 @@ cloudinary.config({
 
 const upload = multer();
 
+// Initialize globals
+blog.initialize()
+    .then(app.listen(HTTP_PORT, onHttpStart))
+    .catch((err) => { "message: " + err });
+
 // Middleware to handle the 'active' items in navbar
 app.use(function(req,res,next){
     let route = req.path.substring(1);
@@ -78,13 +89,13 @@ app.use(function(req,res,next){
     next();
    });
 
+// Middleware for encoding
+app.use(express.urlencoded({extended: true}))
+
 // For static files
 app.use('*/public', express.static(path.join(__dirname, "public")));
 
-// Initialize globals
-blog.initialize()
-    .then(app.listen(HTTP_PORT, onHttpStart))
-    .catch((err) => { res.send("message: " + err) });
+
 
 // Initial page redirected to /about
 app.get("/", (req, res) => {
@@ -181,35 +192,56 @@ app.get("/posts", (req, res) => {
     // /posts?category=value
     if (category) {
         blog.getPostByCategory(category)
-            .then((data) => {res.render("posts", { posts: data })})
-            .catch((err) => {res.render("posts", { message: "no results" })});
+            .then((data) => {
+                if (data.length > 0)
+                    res.render("posts", { posts: data });
+                else
+                    res.render("posts", { message: "no results" });
+            })
+            .catch((err) => {res.render("posts", { message: "no results" }); });
     }
     // /posts?minDate=value
     else if (minDate) {
         blog.getPostsByMinDate(minDate)
-            .then((data) => {res.render("posts", { posts: data })})
-            .catch((err) => {res.render("posts", { message: "no results" })});
+            .then((data) => {
+                if (data.length > 0)
+                    res.render("posts", { posts: data });
+                else
+                    res.render("posts", { message: "no results" });
+                })
+            .catch((err) => {res.render("posts", { message: "no results" }); });
     }
     // All posts
     else {
         blog.getAllPosts()
-            .then((data) => {res.render("posts", { posts: data })})
-            .catch((err) => {res.render("posts", { message: "no results" })});
+        .then((data) => {
+            if (data.length > 0)
+                res.render("posts", { posts: data });
+            else
+                res.render("posts", { message: "no results" });
+            })
+            .catch((err) => {res.render("posts", { message: "no results" }); });
     }
 });
 
 // Categories page
 app.get("/categories", (req, res) => {
     blog.getCategories()
-        .then((data) => { res.render("categories", {categories: data});})
-        .catch((err) => { res.render("categories", {message: "no results"}); });
+    .then((data) => {
+        if (data.length > 0)
+            res.render("categories", { categories: data });
+        else
+            res.render("categories", { message: "no results" });
+        })
+        .catch((err) => { res.render("categories", { message: "no results" }); });
 });
 
 // Add posts
 app.get("/posts/add", (req, res) => {
-    res.render('addPost');
+    blog.getCategories()
+    .then((data) => res.render("addPost", {categories: data}))
+    .catch(() =>res.render("addPost", {categories: []}));
 });
-
 
 // Post a new post
 app.post("/posts/add", upload.single("featureImage"), (req, res) => {
@@ -244,7 +276,6 @@ app.post("/posts/add", upload.single("featureImage"), (req, res) => {
 
         // TODO: Process the req.body and add it as a new Blog Post before redirecting to /posts
         let newPost = {
-            id: 0,
             body: req.body.body,
             title: req.body.title,
             postDate: new Date().toISOString().split('T')[0],
@@ -252,10 +283,25 @@ app.post("/posts/add", upload.single("featureImage"), (req, res) => {
             featureImage: imageUrl,
             published: req.body.published
         }
+
         blog.addPost(newPost)
             .then(() => res.redirect("/posts"))
-            .catch((err) => { res.send("message: " + err) });
+            .catch((err) => { res.send("message: " + err); });
     }
+});
+
+// Add a new category
+app.get("/categories/add", (req, res) => {
+    res.render('addCategory');
+});
+
+// Add a new category
+app.post("/categories/add", (req, res) => {
+    let newCategory = req.body.category; 
+
+    blog.addCategory(newCategory)
+        .then(() => res.redirect("/categories"))
+        .catch((err) => { res.send("message: " + err); });
 });
 
 // Value route
@@ -267,7 +313,26 @@ app.get("/posts/:value", (req, res) => {
         .catch((err) => { res.send("message: " + err); });
 });
 
+// Delete a category by id
+app.get("/categories/delete/:id", (req,res) => {
+    var id = req.params.id;
+
+    blog.deleteCategoryById(id)
+        .then(() =>res.redirect("/categories"))
+        .catch(() => { res.status(500).send("Unable to Remove Category / Category not found"); });
+});
+
+// Delete a post by id
+app.get("/posts/delete/:id", (req,res) => {
+    var id = req.params.id;
+
+    blog.deletePostById(id)
+        .then(() =>res.redirect("/posts"))
+        .catch(() => { res.status(500).send("Unable to Remove Post / Post not found"); });
+});
+
 // If requested page not found
 app.use((req, res) => {
     res.status(404).sendFile(path.join(__dirname, "/views/404_NotFound.html"));
 });
+

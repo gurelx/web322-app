@@ -17,6 +17,9 @@
                              <td>
                                 <a href="/posts?category={{id}}">{{category}}</a>
                             </td>
+                            <td style="width:10px">
+                                <a href="categories/delete/{{id}}" class="btn btn-danger">Remove</a>
+                            </td>
                         </tr>
                     {{/each}}
                 </tbody>
@@ -29,3 +32,4 @@
         </div>
     {{/unless}}
 </div>
+<a href="/categories/add" class="btn btn-success pull-right">Add Category</a>
