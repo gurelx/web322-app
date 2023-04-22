@@ -1,5 +1,5 @@
 /*********************************************************************************
-* WEB322 – Assignment 05
+* WEB322 – Assignment 06
 * I declare that this assignment is my own work in accordance with Seneca Academic Policy. No part
 * of this assignment has been copied manually or electronically from any other source
 * (including 3rd party web sites) or distributed to other students.
@@ -17,6 +17,8 @@ var express = require("express");
 var path = require("path");
 var exphbs = require('express-handlebars');
 var stripJs = require('strip-js');
+var authData = require('./auth-service.js');
+var clientSessions = require('client-sessions');
 
 // File hosting
 const multer = require("multer");
@@ -57,14 +59,8 @@ app.engine('.hbs', exphbs.engine({
     }
 }));
 
-
 // Port will be opened at 8080
 var HTTP_PORT = process.env.PORT || 8080;
-
-// Server message
-function onHttpStart() {
-    console.log("Express http server listening on: " + HTTP_PORT);
-}
 
 // File hosting configuration
 cloudinary.config({
@@ -78,8 +74,36 @@ const upload = multer();
 
 // Initialize globals
 blog.initialize()
-    .then(app.listen(HTTP_PORT, onHttpStart))
-    .catch((err) => { "message: " + err });
+    .then(authData.initialize)
+    .then(function () {
+        app.listen(HTTP_PORT, function () {
+            console.log("app listening on: " + HTTP_PORT)
+        });
+    }).catch(function (err) {
+        console.log("unable to start server: " + err);
+    });
+    
+// This is a helper middleware function that checks if a user is logged in
+function ensureLogin(req, res, next) {
+    if (!req.session.user) {
+      res.redirect("/login");
+    } else {
+      next();
+    }
+  }
+
+// Middleware to Setup client-sessions
+app.use(clientSessions({
+    cookieName: "session", // this is the object name that will be added to 'req'
+    secret: "week10example_web322", // this should be a long un-guessable string.
+    duration: 2 * 60 * 1000, // duration of the session in milliseconds (2 minutes)
+    activeDuration: 1000 * 60 // the session will be extended by this many ms each request (1 minute)
+  }));
+
+  app.use(function (req, res, next) {
+    res.locals.session = req.session;
+    next();
+});
 
 // Middleware to handle the 'active' items in navbar
 app.use(function(req,res,next){
@@ -95,12 +119,65 @@ app.use(express.urlencoded({extended: true}))
 // For static files
 app.use('*/public', express.static(path.join(__dirname, "public")));
 
-
-
 // Initial page redirected to /about
 app.get("/", (req, res) => {
     res.redirect("/blog");
 });
+
+// Login page
+app.get("/login", (req, res) => {
+    res.render("login");
+});
+
+// Register page
+app.get("/register", (req, res) => {
+    res.render("register");
+});
+
+// Register a new user
+app.post("/register", (req, res) => {
+    authData
+      .registerUser(req.body)
+      .then(() => {
+        res.render("register", {
+          successMessage: "User created",
+          errorMessage: null,
+        });
+      })
+      .catch((err) => {
+        res.render("register", {
+          errorMessage: err,
+          userName: req.body.userName,
+          successMessage: null,
+        });
+      });
+  });
+
+// A new login
+app.post("/login", (req, res) => {
+    req.body.userAgent = req.get('User-Agent');
+
+    // Check the user credentials
+    authData.checkUser(req.body).then((user) => {
+        req.session.user = {
+            userName: user.userName,
+            email: user.email,
+            loginHistory: user.loginHistory
+        }
+        res.redirect('/posts');
+    }).catch((err) => res.render("register", {errorMessage: err, userName: req.body.userName}));
+});
+
+// Logout from the page
+app.get("/logout", (req,res) => {
+    req.session.reset();
+    res.redirect("/");
+});
+
+// Logout from the page
+app.get("/userHistory", ensureLogin, (req,res) => {
+    res.render("userHistory", {login : req.session.user.loginHistory});
+})
 
 // About page
 app.get("/about", (req, res) => {
@@ -186,7 +263,7 @@ app.get('/blog/:id', async (req, res) => {
 });
 
 // Posts page
-app.get("/posts", (req, res) => {
+app.get("/posts", ensureLogin, (req, res) => {
     var category = req.query.category;
     var minDate = req.query.minDate;
     // /posts?category=value
@@ -225,7 +302,7 @@ app.get("/posts", (req, res) => {
 });
 
 // Categories page
-app.get("/categories", (req, res) => {
+app.get("/categories", ensureLogin, (req, res) => {
     blog.getCategories()
     .then((data) => {
         if (data.length > 0)
@@ -237,7 +314,7 @@ app.get("/categories", (req, res) => {
 });
 
 // Add posts
-app.get("/posts/add", (req, res) => {
+app.get("/posts/add", ensureLogin, (req, res) => {
     blog.getCategories()
     .then((data) => res.render("addPost", {categories: data}))
     .catch(() =>res.render("addPost", {categories: []}));
@@ -245,6 +322,7 @@ app.get("/posts/add", (req, res) => {
 
 // Post a new post
 app.post("/posts/add", upload.single("featureImage"), (req, res) => {
+    ensureLogin(req,res);
     if (req.file) {
         let streamUpload = (req) => {
             return new Promise((resolve, reject) => {
@@ -291,12 +369,12 @@ app.post("/posts/add", upload.single("featureImage"), (req, res) => {
 });
 
 // Add a new category
-app.get("/categories/add", (req, res) => {
+app.get("/categories/add", ensureLogin, (req, res) => {
     res.render('addCategory');
 });
 
 // Add a new category
-app.post("/categories/add", (req, res) => {
+app.post("/categories/add", ensureLogin, (req, res) => {
     let newCategory = req.body.category; 
 
     blog.addCategory(newCategory)
@@ -305,7 +383,7 @@ app.post("/categories/add", (req, res) => {
 });
 
 // Value route
-app.get("/posts/:value", (req, res) => {
+app.get("/posts/:value", ensureLogin, (req, res) => {
     var id = req.params.value;
 
     blog.getPostById(id)
@@ -314,7 +392,7 @@ app.get("/posts/:value", (req, res) => {
 });
 
 // Delete a category by id
-app.get("/categories/delete/:id", (req,res) => {
+app.get("/categories/delete/:id", ensureLogin, (req,res) => {
     var id = req.params.id;
 
     blog.deleteCategoryById(id)
@@ -323,7 +401,7 @@ app.get("/categories/delete/:id", (req,res) => {
 });
 
 // Delete a post by id
-app.get("/posts/delete/:id", (req,res) => {
+app.get("/posts/delete/:id", ensureLogin, (req,res) => {
     var id = req.params.id;
 
     blog.deletePostById(id)
